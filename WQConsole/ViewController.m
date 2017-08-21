@@ -16,11 +16,25 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    btn.frame = CGRectMake(0, 0, 50, 50);
+    btn.center = self.view.center;
+    [btn setTitle:@"Log"
+         forState:UIControlStateNormal];
+    [btn addTarget:self
+            action:@selector(startLog:)
+  forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:btn];
+}
+
+- (void)startLog:(UIButton *)sender {
+    sender.enabled = NO;
+    [sender setTintColor:[UIColor grayColor]];
     __block int index = 0;
     [NSTimer scheduledTimerWithTimeInterval:1.0
                                     repeats:YES
                                       block:^(NSTimer * _Nonnull timer) {
-                                          WQLogWar(@"第%d次",index ++);
+                                          WQLogMes(@"第%d次",index ++);
                                       }];
 }
 @end
