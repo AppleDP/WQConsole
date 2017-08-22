@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#define WQExcuteOnMainQueue(block) [[NSThread currentThread] isMainThread] ? block() : dispatch_async(dispatch_get_main_queue(), block)
+
 @protocol WQLogViewDelegate <NSObject>
 - (void)clearClick;
 - (void)hideLogClick;

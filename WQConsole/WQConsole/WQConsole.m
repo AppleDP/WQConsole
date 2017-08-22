@@ -64,46 +64,48 @@ static WQConsole *share;
 }
 
 - (void)openViewLog {
-    UIWindow *window;
-    if (!_window) {
-        window = [UIWindow new];
-    }
-    _window = window;
-    [_window makeKeyAndVisible];
-    _window.frame = CGRectMake(WQMainWidth - WQOrignSize,
-                               WQMainHeight/2.0 - WQOrignSize/2.0,
-                               WQOrignSize,
-                               WQOrignSize);
-    _window.windowLevel = UIWindowLevelStatusBar + 1;
-    _window.backgroundColor = [UIColor grayColor];
-    _window.layer.cornerRadius = WQOrignSize/2.0;
-    _window.layer.masksToBounds = YES;
-    
-    // view layout
-    UIButton *logBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    logBtn.frame = _window.bounds;
-    logBtn.layer.cornerRadius = _window.layer.cornerRadius;
-    [logBtn setTitle:@"日志"
-            forState:UIControlStateNormal];
-    [logBtn setTitleColor:[UIColor whiteColor]
-                 forState:UIControlStateNormal];
-    [logBtn addTarget:self
-               action:@selector(logControl:)
-     forControlEvents:UIControlEventTouchUpInside];
-    [_window addSubview:logBtn];
-    _logBtn = logBtn;
-    
-    WQLogView *logView = [[WQLogView alloc] initWithFrame:CGRectMake(0, 0, WQMainWidth, WQShowHeight)];
-    logView.hidden = YES;
-    logView.consoleColor = _consoleColor;
-    logView.delegate = self;
-    [_window addSubview:logView];
-    _logView = logView;
-    
-    // add gesture
-    UIPanGestureRecognizer *gesture = [[UIPanGestureRecognizer alloc] initWithTarget:self
-                                                                              action:@selector(panGesture:)];
-    [_window addGestureRecognizer:gesture];
+    WQExcuteOnMainQueue(^{
+        UIWindow *window;
+        if (!_window) {
+            window = [UIWindow new];
+        }
+        _window = window;
+        [_window makeKeyAndVisible];
+        _window.frame = CGRectMake(WQMainWidth - WQOrignSize,
+                                   WQMainHeight/2.0 - WQOrignSize/2.0,
+                                   WQOrignSize,
+                                   WQOrignSize);
+        _window.windowLevel = UIWindowLevelStatusBar + 1;
+        _window.backgroundColor = [UIColor grayColor];
+        _window.layer.cornerRadius = WQOrignSize/2.0;
+        _window.layer.masksToBounds = YES;
+        
+        // view layout
+        UIButton *logBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        logBtn.frame = _window.bounds;
+        logBtn.layer.cornerRadius = _window.layer.cornerRadius;
+        [logBtn setTitle:@"日志"
+                forState:UIControlStateNormal];
+        [logBtn setTitleColor:[UIColor whiteColor]
+                     forState:UIControlStateNormal];
+        [logBtn addTarget:self
+                   action:@selector(logControl:)
+         forControlEvents:UIControlEventTouchUpInside];
+        [_window addSubview:logBtn];
+        _logBtn = logBtn;
+        
+        WQLogView *logView = [[WQLogView alloc] initWithFrame:CGRectMake(0, 0, WQMainWidth, WQShowHeight)];
+        logView.hidden = YES;
+        logView.consoleColor = _consoleColor;
+        logView.delegate = self;
+        [_window addSubview:logView];
+        _logView = logView;
+        
+        // add gesture
+        UIPanGestureRecognizer *gesture = [[UIPanGestureRecognizer alloc] initWithTarget:self
+                                                                                  action:@selector(panGesture:)];
+        [_window addGestureRecognizer:gesture];
+    });
 }
 
 - (void)log:(UIColor *)color
