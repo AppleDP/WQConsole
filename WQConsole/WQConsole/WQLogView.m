@@ -75,6 +75,20 @@
         UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0, 20,fWidth,fHeight - 20)];
         textView.editable = NO;
         textView.delegate = self;
+        int r = 0, g = 0, b = 0;
+        if (_consoleColor) {
+            const CGFloat *components = CGColorGetComponents(_consoleColor.CGColor);
+            r = components[0]*255;
+            g = components[1]*255;
+            b = components[2]*255;
+            if (r + g + b < 387) {
+                // 页面偏黑时滚动条为白色
+                _textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+            }else {
+                // 页面偏白时滚动条为黑色
+                _textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
+            }
+        }
         [self addSubview:textView];
         _textView = textView;
     }
@@ -92,6 +106,18 @@
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
     _textView.backgroundColor = consoleColor;
+    int r = 0, g = 0, b = 0;
+    if (consoleColor) {
+        const CGFloat *components = CGColorGetComponents(consoleColor.CGColor);
+        r = components[0]*255;
+        g = components[1]*255;
+        b = components[2]*255;
+        if (r + g + b < 387) {
+            _textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+        }else {
+            _textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
+        }
+    }
 }
 
 #pragma mark Btn Click

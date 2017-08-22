@@ -184,7 +184,6 @@ static WQConsole *share;
 #pragma mark -- WQLogViewDelegate
 - (void)hideLogClick {
     // 隐藏日志输出页面
-    _isShowLog = NO;
     [UIView animateWithDuration:0.5
                      animations:^{
                          _window.frame = CGRectMake(WQMainWidth - WQOrignSize,
@@ -193,11 +192,14 @@ static WQConsole *share;
                                                     WQOrignSize);
                          _window.backgroundColor = [UIColor grayColor];
                          _window.layer.cornerRadius = WQOrignSize/2.0;
-                         _logView.hidden = YES;
+                         _logView.alpha = 0.0;
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
+                             _logView.alpha = 1.0;
+                             _logView.hidden = YES;
                              _logBtn.hidden = NO;
+                             _isShowLog = NO;
                          }
                      }];
 }
@@ -257,17 +259,18 @@ static WQConsole *share;
 #pragma mark -- 打开日志页面
 - (void)logControl:(UIButton *)sender {
     // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to white
+    _logView.hidden = NO;
+    _logView.alpha = 0.0;
     [UIView animateWithDuration:0.5
                      animations:^{
                          _window.frame = CGRectMake(0, WQMainHeight - WQShowHeight, WQMainWidth, WQShowHeight);
                          _window.layer.cornerRadius = 0;
-                         _window.backgroundColor = [UIColor grayColor];
+                         _window.backgroundColor = [UIColor whiteColor];
                          _logBtn.hidden = YES;
+                         _logView.alpha = 1.0;
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
-                             _window.backgroundColor = [UIColor whiteColor];
-                             _logView.hidden = NO;
                              _isShowLog = YES;
                              [_logView showLog:_logStr];
                          }
