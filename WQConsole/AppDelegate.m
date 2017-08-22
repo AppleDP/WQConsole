@@ -17,7 +17,7 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    WQShareConsole.consoleColor = [UIColor grayColor];
+    WQShareConsole.consoleColor = [UIColor blackColor];
     [WQShareConsole performSelector:@selector(openViewLog)
                          withObject:nil
                          afterDelay:0.5];

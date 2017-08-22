@@ -45,6 +45,14 @@
                                                 line:__LINE__ \
                                               thread:[NSThread currentThread] \
                                                  log:(FORMAT), ## __VA_ARGS__]
+    #if 0
+        // 打开 NSLog 监听，此时 Xcode Console 不会输出日志
+        #define NSLog(FORMAT,...) [WQShareConsole log:nil \
+                                                 file:[[NSString stringWithUTF8String:__FILE__] lastPathComponent] \
+                                                 line:__LINE__ \
+                                               thread:[NSThread currentThread] \
+                                                  log:(FORMAT), ## __VA_ARGS__]
+    #endif
 #else
     // Release
     #define WQLogDef(FORMAT,...) {}
@@ -56,7 +64,10 @@
 #endif
 
 @interface WQConsole : NSObject
+/** 控制台颜色 */
 @property (nonatomic, strong) UIColor *consoleColor;
+/** 日志字号 */
+@property (nonatomic, assign) CGFloat fontSize;
 + (WQConsole *)shareInstance;
 - (void)openViewLog;
 

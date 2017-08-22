@@ -450,6 +450,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.shenbao.WQConsole;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -462,6 +463,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.shenbao.WQConsole;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -534,6 +536,7 @@
 				8E0942A81F4A6B9900E98ECC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		8E0942A91F4A6B9900E98ECC /* Build configuration list for PBXNativeTarget "WQConsoleTests" */ = {
 			isa = XCConfigurationList;
@@ -542,6 +545,7 @@
 				8E0942AB1F4A6B9900E98ECC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		8E0942AC1F4A6B9900E98ECC /* Build configuration list for PBXNativeTarget "WQConsoleUITests" */ = {
 			isa = XCConfigurationList;
@@ -550,6 +554,7 @@
 				8E0942AE1F4A6B9900E98ECC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

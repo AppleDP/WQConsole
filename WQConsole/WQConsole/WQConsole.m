@@ -54,6 +54,15 @@ static WQConsole *share;
     return share;
 }
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _fontSize = 12;
+    }
+    return self;
+}
+
 - (void)openViewLog {
     UIWindow *window;
     if (!_window) {
@@ -114,9 +123,11 @@ static WQConsole *share;
             va_start(list, log);
             NSString *msg = [[NSString alloc] initWithFormat:log
                                                    arguments:list];
+#ifndef NSLog
             NSLog(@"%@",msg);
+#endif
             va_end(list);
-            NSString *logStr = [NSString stringWithFormat:@"%@ %@ >> >> >> 文件: %@ -- 行号: %d -- 线程: %@ -- 日志: %@ << << <<\n",
+            NSString *logStr = [NSString stringWithFormat:@"%@ %@ >> >> >> 文件: %@ -- 行号: %d -- 线程: %@ -- 日志: %@ << << <<\n\n",
                                 date,
                                 appName,
                                 file,
@@ -124,11 +135,35 @@ static WQConsole *share;
                                 threadName,
                                 msg];
             NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:logStr];
-            if (color) {
-                [attrStr addAttribute:NSForegroundColorAttributeName
-                                value:color
-                                range:NSMakeRange(0, logStr.length)];
+            if (!color) {
+                // 没有为字体设置颜色，如果控制台前背景色小于 387 则日志字体色为白色
+                int r = 0, g = 0, b = 0;
+                if (_consoleColor) {
+                    const CGFloat *components = CGColorGetComponents(_consoleColor.CGColor);
+                    r = components[0]*255;
+                    g = components[1]*255;
+                    b = components[2]*255;
+                    if (r + g + b < 387) {
+                        color = [UIColor whiteColor];
+                    }else {
+                        color = [UIColor blackColor];
+                    }
+                }else {
+                    // 没有设置控制台背景色时，默认为白色
+                    color = [UIColor blackColor];
+                }
             }
+            [attrStr addAttribute:NSForegroundColorAttributeName
+                            value:color
+                            range:NSMakeRange(0, logStr.length)];
+            NSShadow *fontShadow = [[NSShadow alloc] init];
+            fontShadow.shadowColor = color;
+            [attrStr addAttribute:NSShadowAttributeName
+                            value:fontShadow
+                            range:NSMakeRange(0, logStr.length)];
+            [attrStr addAttribute:NSFontAttributeName
+                            value:[UIFont systemFontOfSize:_fontSize]
+                            range:NSMakeRange(0, logStr.length)];
             @synchronized (_logStr) {
                 if (!_logStr) {
                     _logStr = [[NSMutableAttributedString alloc] init];
@@ -216,7 +251,7 @@ static WQConsole *share;
 
 #pragma mark -- 打开日志页面
 - (void)logControl:(UIButton *)sender {
-    // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to clear
+    // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to white
     [UIView animateWithDuration:0.5
                      animations:^{
                          _window.frame = CGRectMake(0, WQMainHeight - WQShowHeight, WQMainWidth, WQShowHeight);
@@ -226,7 +261,7 @@ static WQConsole *share;
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
-                             _window.backgroundColor = [UIColor clearColor];
+                             _window.backgroundColor = [UIColor whiteColor];
                              _logView.hidden = NO;
                              _isShowLog = YES;
                              [_logView showLog:_logStr];
@@ -274,5 +309,14 @@ static WQConsole *share;
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
     _logView.consoleColor = consoleColor;
+}
+
+- (void)setFontSize:(CGFloat)fontSize {
+    _fontSize = fontSize;
+    @synchronized (_logStr) {
+        [_logStr addAttribute:NSFontAttributeName
+                        value:[UIFont systemFontOfSize:fontSize]
+                        range:NSMakeRange(0, _logStr.length)];
+    }
 }
 @end
