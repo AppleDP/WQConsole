@@ -30,7 +30,6 @@
 @property (nonatomic, weak) WQLogView *logView;
 @property (nonatomic, weak) UIButton *logBtn;
 @property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) UIPanGestureRecognizer *gesture;
 @property (nonatomic, assign) BOOL isShowLog;
 @property (nonatomic, assign) BOOL isPauseLog;
 @end
@@ -96,7 +95,6 @@ static WQConsole *share;
     UIPanGestureRecognizer *gesture = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                               action:@selector(panGesture:)];
     [_window addGestureRecognizer:gesture];
-    _gesture = gesture;
 }
 
 - (void)log:(UIColor *)color
@@ -107,7 +105,7 @@ static WQConsole *share;
     @autoreleasepool {
         if (log) {
             NSDateFormatter *formater = [[NSDateFormatter alloc] init];
-            formater.dateFormat = @"yyy-MM-dd HH:mm:ss.SSS";
+            formater.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
             NSString *date = [formater stringFromDate:[NSDate date]];
             NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
             NSString *appName = ((NSString *)[infoDictionary objectForKey:@"CFBundleDisplayName"]).length != 0 ? [infoDictionary objectForKey:@"CFBundleDisplayName"] : [infoDictionary objectForKey:@"CFBundleName"];
@@ -195,7 +193,6 @@ static WQConsole *share;
         NSData *logData = [((NSMutableAttributedString *)[_logStr copy]).string dataUsingEncoding:NSUTF8StringEncoding];
         [logData writeToFile:path
                   atomically:YES];
-        NSLog(@"文件路径: %@",path);
     }
 }
 
@@ -219,7 +216,7 @@ static WQConsole *share;
 
 #pragma mark -- 打开日志页面
 - (void)logControl:(UIButton *)sender {
-    // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to white
+    // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to clear
     [UIView animateWithDuration:0.5
                      animations:^{
                          _window.frame = CGRectMake(0, WQMainHeight - WQShowHeight, WQMainWidth, WQShowHeight);
@@ -263,9 +260,7 @@ static WQConsole *share;
                 // 靠右
                 point.x = WQMainWidth - wWidth/2.0;
             }
-            
         }break;
-            
         default:{
         }break;
     }
