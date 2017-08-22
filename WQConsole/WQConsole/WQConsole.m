@@ -125,9 +125,6 @@ static WQConsole *share;
             va_start(list, log);
             NSString *msg = [[NSString alloc] initWithFormat:log
                                                    arguments:list];
-#ifndef NSLog
-            NSLog(@"%@",msg);
-#endif
             va_end(list);
             NSString *logStr = [NSString stringWithFormat:@"%@ %@ >> >> >> 文件: %@ -- 行号: %d -- 线程: %@ -- 日志: %@ << << <<\n\n",
                                 date,
@@ -136,6 +133,11 @@ static WQConsole *share;
                                 line,
                                 threadName,
                                 msg];
+#ifndef NSLog
+            NSLog(@"%@",msg);
+#else
+            printf("%s",logStr.UTF8String);
+#endif
             NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:logStr];
             if (!color) {
                 // 没有为字体设置颜色，如果控制台前背景色小于 387 则日志字体色为白色
