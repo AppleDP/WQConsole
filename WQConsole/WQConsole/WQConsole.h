@@ -11,6 +11,9 @@
 #ifndef WQShareConsole
 #define WQShareConsole [WQConsole shareInstance]
 #endif
+#ifndef WQExcuteOnMainQueue
+#define WQExcuteOnMainQueue(block) [[NSThread currentThread] isMainThread] ? block() : dispatch_async(dispatch_get_main_queue(), block)
+#endif
 
 #if DEBUG
     // DEBUG

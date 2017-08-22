@@ -172,7 +172,9 @@ static WQConsole *share;
                 }
                 [_logStr appendAttributedString:attrStr];
                 if (_isShowLog && !_isPauseLog) {
-                    [_logView showLog:_logStr];
+                    WQExcuteOnMainQueue(^{
+                        [_logView showLog:_logStr];
+                    });
                 }
             }
         }
@@ -310,7 +312,9 @@ static WQConsole *share;
 #pragma mark -- Set 方法
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
-    _logView.consoleColor = consoleColor;
+    WQExcuteOnMainQueue(^{
+        _logView.consoleColor = consoleColor;
+    });
 }
 
 - (void)setFontSize:(CGFloat)fontSize {

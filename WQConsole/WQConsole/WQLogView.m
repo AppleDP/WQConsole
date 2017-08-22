@@ -82,20 +82,16 @@
 }
 
 - (void)showLog:(NSMutableAttributedString *)logStr {
-    WQExcuteOnMainQueue(^{
-        // 在主线程执行页面更新操作
-        _textView.attributedText = logStr;
-        if (_autoShow) {
-            [_textView scrollRangeToVisible:NSMakeRange(_textView.text.length, 1)];
-        }
-    });
+    // 在主线程执行页面更新操作
+    _textView.attributedText = logStr;
+    if (_autoShow) {
+        [_textView scrollRangeToVisible:NSMakeRange(_textView.text.length, 1)];
+    }
 }
 
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
-    WQExcuteOnMainQueue(^{
-        _textView.backgroundColor = consoleColor;
-    });
+    _textView.backgroundColor = consoleColor;
 }
 
 #pragma mark Btn Click
