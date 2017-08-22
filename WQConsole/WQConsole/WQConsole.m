@@ -230,8 +230,9 @@ static WQConsole *share;
             }
         }
         NSData *logData = [((NSMutableAttributedString *)[_logStr copy]).string dataUsingEncoding:NSUTF8StringEncoding];
-        [logData writeToFile:path
-                  atomically:YES];
+        if ([logData writeToFile:path atomically:YES]) {
+            WQLogMes(@"日志保存到文件: %@",path);
+        }
     }
 }
 
