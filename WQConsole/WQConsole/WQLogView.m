@@ -52,7 +52,7 @@
         pauseAndResumeBtn.frame = CGRectMake(CGRectGetMaxX(recordBtn.frame) + 5, 0, 30, 20);
         [pauseAndResumeBtn setTitle:@"暂停"
                            forState:UIControlStateNormal];
-        [pauseAndResumeBtn setTitle:@"开始"
+        [pauseAndResumeBtn setTitle:@"继续"
                            forState:UIControlStateSelected];
         pauseAndResumeBtn.titleLabel.font = [UIFont systemFontOfSize:10];
         [pauseAndResumeBtn addTarget:self

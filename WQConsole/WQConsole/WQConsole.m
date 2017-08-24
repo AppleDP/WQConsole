@@ -64,6 +64,8 @@ static WQConsole *share;
 }
 
 - (void)openViewLog {
+    void (^a)();
+    WQExcuteOnMainQueue(a);
     WQExcuteOnMainQueue(^{
         UIWindow *window;
         if (!_window) {
@@ -157,6 +159,9 @@ static WQConsole *share;
                     color = [UIColor blackColor];
                 }
             }
+            if (!_logStr) {
+                _logStr = [[NSMutableAttributedString alloc] init];
+            }
             [attrStr addAttribute:NSForegroundColorAttributeName
                             value:color
                             range:NSMakeRange(0, logStr.length)];
@@ -165,13 +170,10 @@ static WQConsole *share;
             [attrStr addAttribute:NSShadowAttributeName
                             value:fontShadow
                             range:NSMakeRange(0, logStr.length)];
-            [attrStr addAttribute:NSFontAttributeName
-                            value:[UIFont systemFontOfSize:_fontSize]
-                            range:NSMakeRange(0, logStr.length)];
             @synchronized (_logStr) {
-                if (!_logStr) {
-                    _logStr = [[NSMutableAttributedString alloc] init];
-                }
+                [attrStr addAttribute:NSFontAttributeName
+                                value:[UIFont systemFontOfSize:_fontSize]
+                                range:NSMakeRange(0, logStr.length)];
                 [_logStr appendAttributedString:attrStr];
                 if (_isShowLog && !_isPauseLog) {
                     WQExcuteOnMainQueue(^{
@@ -233,7 +235,7 @@ static WQConsole *share;
                 WQLogErr(@"文件删除错误: %@",err);
             }
         }
-        NSData *logData = [((NSMutableAttributedString *)[_logStr copy]).string dataUsingEncoding:NSUTF8StringEncoding];
+        NSData *logData = [_logStr.string dataUsingEncoding:NSUTF8StringEncoding];
         if ([logData writeToFile:path atomically:YES]) {
             WQLogMes(@"日志保存到文件: %@",path);
         }
@@ -274,7 +276,11 @@ static WQConsole *share;
                      completion:^(BOOL finished) {
                          if (finished) {
                              _isShowLog = YES;
-                             [_logView showLog:_logStr];
+                             @synchronized (_logStr) {
+                                 if (!_isPauseLog) {
+                                     [_logView showLog:_logStr];
+                                 }
+                             }
                          }
                      }];
 }

@@ -12,7 +12,7 @@
 #define WQShareConsole [WQConsole shareInstance]
 #endif
 #ifndef WQExcuteOnMainQueue
-#define WQExcuteOnMainQueue(block) [[NSThread currentThread] isMainThread] ? block() : dispatch_async(dispatch_get_main_queue(), block)
+#define WQExcuteOnMainQueue(block) !block ? : [[NSThread currentThread] isMainThread] ? block() : dispatch_async(dispatch_get_main_queue(), block)
 #endif
 
 #if DEBUG
@@ -49,7 +49,7 @@
                                               thread:[NSThread currentThread] \
                                                  log:(FORMAT), ## __VA_ARGS__]
     #if 0
-        // 打开 NSLog 监听，此时 Xcode Console 不会输出日志
+        // 打开 NSLog 监听
         #define NSLog(FORMAT,...) [WQShareConsole log:nil \
                                                  file:[[NSString stringWithUTF8String:__FILE__] lastPathComponent] \
                                                  line:__LINE__ \
