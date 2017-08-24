@@ -246,6 +246,9 @@ static WQConsole *share;
     if (resume) {
         // 开始输出日志
         _isPauseLog = NO;
+        @synchronized (_logStr) {
+            [_logView showLog:_logStr];
+        }
     }else {
         // 暂停输出日志
         _isPauseLog = YES;
