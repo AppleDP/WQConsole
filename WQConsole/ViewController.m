@@ -28,6 +28,7 @@
 }
 
 - (void)startLog:(UIButton *)sender {
+    NSAssert(0, @"崩溃信息");
     sender.enabled = NO;
     [sender setTintColor:[UIColor grayColor]];
     __block int index = 0;

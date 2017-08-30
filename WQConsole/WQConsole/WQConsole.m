@@ -107,7 +107,26 @@ static WQConsole *share;
         UIPanGestureRecognizer *gesture = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                   action:@selector(panGesture:)];
         [_window addGestureRecognizer:gesture];
+        
+        // 崩溃信息监听
+        [self listenCrashMessage];
     });
+}
+
+- (void)listenCrashMessage {
+    NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
+}
+
+void uncaughtExceptionHandler(NSException *exception) {
+    NSArray *arr = [exception callStackSymbols];
+    NSString *reason = [exception reason];
+    NSString *name = [exception name];
+    NSString *crashStr = [NSString stringWithFormat:@"*** Terminating app due to uncaught exception `%@`, reason: `%@` \n*** First throw call stack:\n%@",
+                          name,reason,arr];
+    @synchronized (share.logStr) {
+        [share.logStr appendAttributedString:[[NSAttributedString alloc] initWithString:crashStr]];
+    }
+    [share recordClick];
 }
 
 - (void)log:(UIColor *)color
