@@ -7,7 +7,6 @@
 //
 
 #import "WQConsole.h"
-#import "WQLogView.h"
 
 #ifndef WQMainWidth
 #define WQMainWidth CGRectGetWidth([[UIScreen mainScreen] bounds])
@@ -26,7 +25,7 @@
 <
     WQLogViewDelegate
 >
-@property (nonatomic, copy) NSMutableAttributedString *logStr;
+@property (nonatomic, strong) NSMutableAttributedString *logStr;
 @property (nonatomic, weak) WQLogView *logView;
 @property (nonatomic, weak) UIButton *logBtn;
 @property (nonatomic, strong) UIWindow *window;
@@ -36,7 +35,7 @@
 
 @implementation WQConsole
 static WQConsole *share;
-+ (WQConsole *)shareInstance {
++ (instancetype)shareInstance {
     @synchronized (share) {
         if (share == nil) {
             share = [[WQConsole alloc] init];
@@ -54,38 +53,27 @@ static WQConsole *share;
     return share;
 }
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        _fontSize = 12;
-    }
-    return self;
-}
-
 - (void)openViewLog {
-    void (^a)();
-    WQExcuteOnMainQueue(a);
     WQExcuteOnMainQueue(^{
         UIWindow *window;
-        if (!_window) {
+        if (!self.window) {
             window = [UIWindow new];
         }
-        _window = window;
-        [_window makeKeyAndVisible];
-        _window.frame = CGRectMake(WQMainWidth - WQOrignSize,
-                                   WQMainHeight/2.0 - WQOrignSize/2.0,
-                                   WQOrignSize,
-                                   WQOrignSize);
-        _window.windowLevel = UIWindowLevelStatusBar + 1;
-        _window.backgroundColor = [UIColor grayColor];
-        _window.layer.cornerRadius = WQOrignSize/2.0;
-        _window.layer.masksToBounds = YES;
+        self.window = window;
+        [self.window makeKeyAndVisible];
+        self.window.frame = CGRectMake(WQMainWidth - WQOrignSize,
+                                       WQMainHeight/2.0 - WQOrignSize/2.0,
+                                       WQOrignSize,
+                                       WQOrignSize);
+        self.window.windowLevel = UIWindowLevelStatusBar + 1;
+        self.window.backgroundColor = [UIColor grayColor];
+        self.window.layer.cornerRadius = WQOrignSize/2.0;
+        self.window.layer.masksToBounds = YES;
         
         // view layout
         UIButton *logBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        logBtn.frame = _window.bounds;
-        logBtn.layer.cornerRadius = _window.layer.cornerRadius;
+        logBtn.frame = self.window.bounds;
+        logBtn.layer.cornerRadius = self.window.layer.cornerRadius;
         [logBtn setTitle:@"日志"
                 forState:UIControlStateNormal];
         [logBtn setTitleColor:[UIColor whiteColor]
@@ -93,20 +81,20 @@ static WQConsole *share;
         [logBtn addTarget:self
                    action:@selector(logControl:)
          forControlEvents:UIControlEventTouchUpInside];
-        [_window addSubview:logBtn];
-        _logBtn = logBtn;
+        [self.window addSubview:logBtn];
+        self.logBtn = logBtn;
         
         WQLogView *logView = [[WQLogView alloc] initWithFrame:CGRectMake(0, 0, WQMainWidth, WQShowHeight)];
         logView.hidden = YES;
-        logView.consoleColor = _consoleColor;
+        logView.consoleColor = self.consoleColor;
         logView.delegate = self;
-        [_window addSubview:logView];
-        _logView = logView;
+        [self.window addSubview:logView];
+        self.logView = logView;
         
         // add gesture
         UIPanGestureRecognizer *gesture = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                                   action:@selector(panGesture:)];
-        [_window addGestureRecognizer:gesture];
+        [self.window addGestureRecognizer:gesture];
         
         // 崩溃信息监听
         [self listenCrashMessage];
@@ -129,42 +117,87 @@ void uncaughtExceptionHandler(NSException *exception) {
     [share recordClick];
 }
 
-- (void)log:(UIColor *)color
-       file:(NSString *)file
-       line:(int)line
-     thread:(NSThread *)thread
-        log:(NSString *)log,... {
+- (void)logWithColor:(UIColor *)color
+               level:(WQLogLevel)level
+                file:(NSString *)file
+                line:(int)line
+              thread:(NSThread *)thread
+             message:(NSString *)log,... {
     @autoreleasepool {
         if (log) {
-            NSDateFormatter *formater = [[NSDateFormatter alloc] init];
-            formater.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
-            NSString *date = [formater stringFromDate:[NSDate date]];
-            NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-            NSString *appName = ((NSString *)[infoDictionary objectForKey:@"CFBundleDisplayName"]).length != 0 ? [infoDictionary objectForKey:@"CFBundleDisplayName"] : [infoDictionary objectForKey:@"CFBundleName"];
             va_list list;
-            NSString *threadName = [[NSThread currentThread] isMainThread] ? @"Main" : ([[NSThread currentThread].name  isEqual: @""] ? @"Child" : [NSThread currentThread].name);
             va_start(list, log);
             NSString *msg = [[NSString alloc] initWithFormat:log
                                                    arguments:list];
             va_end(list);
-            NSString *logStr = [NSString stringWithFormat:@"%@ %@ >> >> >> 文件: %@ -- 行号: %d -- 线程: %@ -- 日志: %@ << << <<\n\n",
-                                date,
-                                appName,
+            NSString *levelStr = @"";
+            NSString *headerStr = @"";
+            NSString *footerStr = @"";
+            switch (level) {
+                    case kWQLogDef:
+                    levelStr = @"WQDef";
+                    headerStr = @">> >> >>";
+                    footerStr = @"<< << <<";
+                    break;
+                    case kWQLogInf:
+                    levelStr = @"WQInf";
+                    headerStr = @">> >> >>";
+                    footerStr = @"<< << <<";
+                    break;
+                    case kWQLogErr:
+                    levelStr = @"WQErr";
+                    headerStr = @">> ## >>";
+                    footerStr = @"<< ## <<";
+                    break;
+                    case kWQLogWar:
+                    levelStr = @"WQWar";
+                    headerStr = @">> !! >>";
+                    footerStr = @"<< !! <<";
+                    break;
+                    case kWQLogMes:
+                    levelStr = @"WQMes";
+                    headerStr = @">> ** >>";
+                    footerStr = @"<< ** <<";
+                    break;
+                    case kWQLogOth:
+                    levelStr = @"WQOth";
+                    headerStr = @">> $$ >>";
+                    footerStr = @"<< $$ <<";
+                    break;
+                    
+                default:
+                    levelStr = @"Unknow";
+                    headerStr = @">> ?? >>";
+                    footerStr = @"<< ?? <<";
+                    break;
+            }
+            NSDateFormatter *formater = [[NSDateFormatter alloc] init];
+            formater.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+            NSString *date = [formater stringFromDate:[NSDate date]];
+            NSString *queueName = [NSString stringWithUTF8String:dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL)];
+            NSString *threadName = [[NSThread currentThread] isMainThread] ? @"Main" : ([NSThread currentThread].name.length == 0 ? (queueName.length != 0 ? queueName : @"Child") : [NSThread currentThread].name);
+            NSString *logStr = [NSString stringWithFormat:@"%@ 文件: %@ --- 线程: %@ --- 类型: %@[%d]: %@ %@",
+                                headerStr,
                                 file,
-                                line,
                                 threadName,
-                                msg];
+                                levelStr,
+                                line,
+                                msg,
+                                footerStr];
 #ifndef NSLog
-            NSLog(@"%@",msg);
+            NSLog(@"%@",logStr);
+            logStr = [date stringByAppendingFormat:@" %@",logStr];
+            logStr = [logStr stringByAppendingString:@"\n"];
 #else
+            logStr = [date stringByAppendingFormat:@" %@",logStr];
+            logStr = [logStr stringByAppendingString:@"\n"];
             printf("%s",logStr.UTF8String);
 #endif
-            NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:logStr];
             if (!color) {
                 // 没有为字体设置颜色，如果控制台前背景色小于 387 则日志字体色为白色
                 int r = 0, g = 0, b = 0;
-                if (_consoleColor) {
-                    const CGFloat *components = CGColorGetComponents(_consoleColor.CGColor);
+                if (self.consoleColor) {
+                    const CGFloat *components = CGColorGetComponents(self.consoleColor.CGColor);
                     r = components[0]*255;
                     g = components[1]*255;
                     b = components[2]*255;
@@ -174,13 +207,14 @@ void uncaughtExceptionHandler(NSException *exception) {
                         color = [UIColor blackColor];
                     }
                 }else {
-                    // 没有设置控制台背景色时，默认为白色
+                    // 没有设置控制台背景色时，默认为黑色
                     color = [UIColor blackColor];
                 }
             }
-            if (!_logStr) {
-                _logStr = [[NSMutableAttributedString alloc] init];
+            if (!self.logStr) {
+                self.logStr = [[NSMutableAttributedString alloc] init];
             }
+            NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:logStr];
             [attrStr addAttribute:NSForegroundColorAttributeName
                             value:color
                             range:NSMakeRange(0, logStr.length)];
@@ -189,15 +223,13 @@ void uncaughtExceptionHandler(NSException *exception) {
             [attrStr addAttribute:NSShadowAttributeName
                             value:fontShadow
                             range:NSMakeRange(0, logStr.length)];
-            @synchronized (_logStr) {
+            @synchronized (self.logStr) {
                 [attrStr addAttribute:NSFontAttributeName
-                                value:[UIFont systemFontOfSize:_fontSize]
+                                value:self.font
                                 range:NSMakeRange(0, logStr.length)];
-                [_logStr appendAttributedString:attrStr];
-                if (_isShowLog && !_isPauseLog) {
-                    WQExcuteOnMainQueue(^{
-                        [_logView showLog:_logStr];
-                    });
+                [self.logStr appendAttributedString:attrStr];
+                if (self.isShowLog && !self.isPauseLog) {
+                    [self.logView showLog:self.logStr];
                 }
             }
         }
@@ -209,27 +241,27 @@ void uncaughtExceptionHandler(NSException *exception) {
     // 隐藏日志输出页面
     [UIView animateWithDuration:0.5
                      animations:^{
-                         _window.frame = CGRectMake(WQMainWidth - WQOrignSize,
+                         self.window.frame = CGRectMake(WQMainWidth - WQOrignSize,
                                                     WQMainHeight/2.0 - WQOrignSize/2.0,
                                                     WQOrignSize,
                                                     WQOrignSize);
-                         _window.backgroundColor = [UIColor grayColor];
-                         _window.layer.cornerRadius = WQOrignSize/2.0;
-                         _logView.alpha = 0.0;
+                         self.window.backgroundColor = [UIColor grayColor];
+                         self.window.layer.cornerRadius = WQOrignSize/2.0;
+                         self.logView.alpha = 0.0;
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
-                             _logView.alpha = 1.0;
-                             _logView.hidden = YES;
-                             _logBtn.hidden = NO;
-                             _isShowLog = NO;
+                             self.logView.alpha = 1.0;
+                             self.logView.hidden = YES;
+                             self.logBtn.hidden = NO;
+                             self.isShowLog = NO;
                          }
                      }];
 }
 
 - (void)recordClick {
     // 记录到文件
-    @synchronized (_logStr) {
+    @synchronized (self.logStr) {
         NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                               NSUserDomainMask,
                                                               YES) firstObject];
@@ -254,7 +286,7 @@ void uncaughtExceptionHandler(NSException *exception) {
                 WQLogErr(@"文件删除错误: %@",err);
             }
         }
-        NSData *logData = [_logStr.string dataUsingEncoding:NSUTF8StringEncoding];
+        NSData *logData = [self.logStr.string dataUsingEncoding:NSUTF8StringEncoding];
         if ([logData writeToFile:path atomically:YES]) {
             WQLogMes(@"日志保存到文件: %@",path);
         }
@@ -264,43 +296,45 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)pauseAndResumeClick:(BOOL)resume {
     if (resume) {
         // 开始输出日志
-        _isPauseLog = NO;
-        @synchronized (_logStr) {
-            [_logView showLog:_logStr];
+        self.isPauseLog = NO;
+        @synchronized (self.logStr) {
+            [self.logView showLog:self.logStr];
         }
     }else {
         // 暂停输出日志
-        _isPauseLog = YES;
+        self.isPauseLog = YES;
     }
 }
 
 - (void)clearClick {
     // 添除日志
-    @synchronized (_logStr) {
-        _logStr = [[NSMutableAttributedString alloc] init];
-        [_logView showLog:_logStr];
+    @synchronized (self.logStr) {
+        @synchronized (self.logStr) {
+            self.logStr = [[NSMutableAttributedString alloc] init];
+            [self.logView showLog:self.logStr];
+        }
     }
 }
 
 #pragma mark -- 打开日志页面
 - (void)logControl:(UIButton *)sender {
     // show the logView and hide the logBtn and window`s cornerRadius to 0 backgroundColor to white
-    _logView.hidden = NO;
-    _logView.alpha = 0.0;
+    self.logView.hidden = NO;
+    self.logView.alpha = 0.0;
     [UIView animateWithDuration:0.5
                      animations:^{
-                         _window.frame = CGRectMake(0, WQMainHeight - WQShowHeight, WQMainWidth, WQShowHeight);
-                         _window.layer.cornerRadius = 0;
-                         _window.backgroundColor = [UIColor whiteColor];
-                         _logBtn.hidden = YES;
-                         _logView.alpha = 1.0;
+                         self.window.frame = CGRectMake(0, WQMainHeight - WQShowHeight, WQMainWidth, WQShowHeight);
+                         self.window.layer.cornerRadius = 0;
+                         self.window.backgroundColor = [UIColor whiteColor];
+                         self.logBtn.hidden = YES;
+                         self.logView.alpha = 1.0;
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
-                             _isShowLog = YES;
-                             @synchronized (_logStr) {
-                                 if (!_isPauseLog) {
-                                     [_logView showLog:_logStr];
+                             self.isShowLog = YES;
+                             @synchronized (self.logStr) {
+                                 if (!self.isPauseLog) {
+                                     [self.logView showLog:self.logStr];
                                  }
                              }
                          }
@@ -339,7 +373,7 @@ void uncaughtExceptionHandler(NSException *exception) {
     }
     [UIView animateWithDuration:0.1
                      animations:^{
-                         _window.center = point;
+                         self.window.center = point;
                      }];
 }
 
@@ -347,16 +381,14 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
     WQExcuteOnMainQueue(^{
-        _logView.consoleColor = consoleColor;
+        self.logView.consoleColor = consoleColor;
     });
 }
 
-- (void)setFontSize:(CGFloat)fontSize {
-    _fontSize = fontSize;
-    @synchronized (_logStr) {
-        [_logStr addAttribute:NSFontAttributeName
-                        value:[UIFont systemFontOfSize:fontSize]
-                        range:NSMakeRange(0, _logStr.length)];
+- (UIFont *)font {
+    if (_font == nil) {
+        _font = [UIFont systemFontOfSize:12];
     }
+    return _font;
 }
 @end

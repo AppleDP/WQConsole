@@ -25,17 +25,27 @@
             action:@selector(startLog:)
   forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btn];
+    
+    WQLogDef(@"log def");
+    WQLogErr(@"log err");
+    WQLogInf(@"log inf");
+    WQLogMes(@"log mes");
+    WQLogWar(@"log war");
+    WQLogOth(@"log oth");
 }
 
 - (void)startLog:(UIButton *)sender {
-    NSAssert(0, @"崩溃信息");
-    sender.enabled = NO;
-    [sender setTintColor:[UIColor grayColor]];
-    __block int index = 0;
-    [NSTimer scheduledTimerWithTimeInterval:1.0
-                                    repeats:YES
-                                      block:^(NSTimer * _Nonnull timer) {
-                                          WQLogMes(@"第%d次",index ++);
-                                      }];
+    static int index = 0;
+    static int count = 0;
+    NSString *queueLabel = [NSString stringWithFormat:@"WQConsole Queue %d",index ++];
+    dispatch_queue_t queue = dispatch_queue_create(queueLabel.UTF8String, DISPATCH_QUEUE_CONCURRENT);
+    dispatch_async(queue, ^{
+        WQLogDef(@"第 %d 次",count ++);
+        WQLogErr(@"第 %d 次",count ++);
+        WQLogInf(@"第 %d 次",count ++);
+        WQLogMes(@"第 %d 次",count ++);
+        WQLogWar(@"第 %d 次",count ++);
+        WQLogOth(@"第 %d 次",count ++);
+    });
 }
 @end

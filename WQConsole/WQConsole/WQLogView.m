@@ -25,7 +25,7 @@
         self.layer.borderColor = [UIColor blackColor].CGColor;
         CGFloat fWidth = CGRectGetWidth(frame);
         CGFloat fHeight = CGRectGetHeight(frame);
-        _autoShow = YES;
+        self.autoShow = YES;
         
         // view layout
         UIButton *hideBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -83,29 +83,31 @@
             b = components[2]*255;
             if (r + g + b < 387) {
                 // 页面偏黑时滚动条为白色
-                _textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+                self.textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
             }else {
                 // 页面偏白时滚动条为黑色
-                _textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
+                self.textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
             }
         }
         [self addSubview:textView];
-        _textView = textView;
+        self.textView = textView;
     }
     return self;
 }
 
 - (void)showLog:(NSMutableAttributedString *)logStr {
     // 在主线程执行页面更新操作
-    _textView.attributedText = logStr;
-    if (_autoShow) {
-        [_textView scrollRangeToVisible:NSMakeRange(_textView.text.length, 1)];
-    }
+    WQExcuteOnMainQueue(^{
+        self.textView.attributedText = [logStr copy];
+        if (self.autoShow) {
+            [self.textView scrollRangeToVisible:NSMakeRange(self.textView.text.length, 1)];
+        }
+    });
 }
 
 - (void)setConsoleColor:(UIColor *)consoleColor {
     _consoleColor = consoleColor;
-    _textView.backgroundColor = consoleColor;
+    self.textView.backgroundColor = consoleColor;
     int r = 0, g = 0, b = 0;
     if (consoleColor) {
         const CGFloat *components = CGColorGetComponents(consoleColor.CGColor);
@@ -113,9 +115,9 @@
         g = components[1]*255;
         b = components[2]*255;
         if (r + g + b < 387) {
-            _textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+            self.textView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
         }else {
-            _textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
+            self.textView.indicatorStyle = UIScrollViewIndicatorStyleBlack;
         }
     }
 }
@@ -125,7 +127,7 @@
     if ([_delegate respondsToSelector:@selector(clearClick)]) {
         [_delegate clearClick];
     }
-    _autoShow = YES;
+    self.autoShow = YES;
 }
 
 - (void)hideLogClick:(UIButton *)sender {
@@ -138,7 +140,7 @@
     if ([_delegate respondsToSelector:@selector(pauseAndResumeClick:)]) {
         [_delegate pauseAndResumeClick:sender.selected];
     }
-    _autoShow = sender.selected;
+    self.autoShow = sender.selected;
     sender.selected = !sender.selected;
 }
 
@@ -153,10 +155,10 @@
                   willDecelerate:(BOOL)decelerate {
     CGPoint offset = scrollView.contentOffset;
     CGSize size = scrollView.contentSize;
-    if (offset.y >= size.height - CGRectGetHeight(_textView.frame)) {
-        _autoShow = YES;
+    if (offset.y >= size.height - CGRectGetHeight(self.textView.frame)) {
+        self.autoShow = YES;
     }else {
-        _autoShow = NO;
+        self.autoShow = NO;
     }
 }
 @end

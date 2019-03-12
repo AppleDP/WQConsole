@@ -17,16 +17,10 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    WQShareConsole.consoleColor = [UIColor blackColor];
-    [WQShareConsole performSelector:@selector(openViewLog)
+    WQConsoleCtrl.consoleColor = [UIColor blackColor];
+    [WQConsoleCtrl performSelector:@selector(openViewLog)
                          withObject:nil
                          afterDelay:0.5];
-    WQLogDef(@"log def");
-    WQLogErr(@"log err");
-    WQLogInf(@"log inf");
-    WQLogMes(@"log mes");
-    WQLogWar(@"log war");
-    WQLogOth(@"log oth");
     return YES;
 }
 
